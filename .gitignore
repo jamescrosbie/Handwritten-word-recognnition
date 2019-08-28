@@ -1,3 +1,11 @@
+/.ipynb_checkpoints/*
+/checkpoint/*
+/data_sentences/*
+/data_singleword/*
+/logs/*
+/models/*
+/numpyArrays/*
+/ResizedImages/
 /data/*
 6 Convolutional Neural Networks.ipynb
-/.ipynb_checkpoints/*
+/EAST_model/*
