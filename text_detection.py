@@ -13,44 +13,40 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", type=str, help="path to input image")
 ap.add_argument("-east", "--east", type=str, default="./EAST_model/frozen_east_text_detection.pb",
                 help="path to input EAST text detector")
-ap.add_argument("-c", "--min-confidence", type=float, default=0.80,
+ap.add_argument("-c", "--min-confidence", type=float, default=0.90,
                 help="minimum probability required to inspect a region")
-ap.add_argument("-w", "--width", type=int, default=320,
-                help="resized image width (should be multiple of 32)")
-ap.add_argument("-h", "--height", type=int, default=320,
-                help="resized image height (should be multiple of 32)")
 args = vars(ap.parse_args())
 
 # load the input image and grab the image dimensions
 image = cv2.imread(args["image"])
 orig = image.copy()
 
-print(f"old image size {image.shape}")
+print(f"Original image size {image.shape}")
 (H, W) = image.shape[:2]
 
-# set the new width and height and then determine the ratio in change
-# for both the width and height
-(newW, newH) = (args["width"], args["height"])
-rW = W / float(newW)
-rH = H / float(newH)
+if H % 32 == 0 and W % 32 == 0:
+    pass
+else:
+    print(f"Image will be resized to have dimensions of multile 32")
+    # set the new width and height and then determine the ratio in change
+    # for both the width and height
+    newW = ((W // 32) + 1) * 32
+    newH = ((H // 32) + 1) * 32
+    rW = W / float(newW)
+    rH = H / float(newH)
 
 # resize the image and grab the new image dimensions
-newW = 1824
-newH = 96
 image = cv2.resize(image, (newW, newH))
 (H, W) = image.shape[:2]
 print(f"New image size {image.shape}")
-# cv2.imshow("resized image", image)
-# cv2.waitKey(0)
 
 # define the two output layer names for the EAST detector model that
 # we are interested -- the first is the output probabilities and the
 # second can be used to derive the bounding box coordinates of text
-layerNames = [
-    "feature_fusion/Conv_7/Sigmoid", "feature_fusion/concat_3"]
+layerNames = ["feature_fusion/Conv_7/Sigmoid", "feature_fusion/concat_3"]
 
 # load the pre-trained EAST text detector
-print("[INFO] loading EAST text detector...")
+print("Loading EAST text detector...")
 net = cv2.dnn.readNet(args["east"])
 
 # construct a blob from the image and then perform a forward pass of
@@ -63,7 +59,7 @@ net.setInput(blob)
 end = time.time()
 
 # show timing information on text prediction
-print("[INFO] text detection took {:.6f} seconds".format(end - start))
+print("Text detection took {:.6f} seconds".format(end - start))
 
 # grab the number of rows and columns from the scores volume, then
 # initialize our set of bounding box rectangles and corresponding
